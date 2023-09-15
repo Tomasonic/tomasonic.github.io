@@ -1,0 +1,45 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+
+
+body {
+    background: url(./13987.jpg);
+}
+
+.main {
+    background: #534c94;
+    width: 400px;
+    height: 175px;
+    margin: 100px auto;
+    position: relative;
+    padding: 30px;
+}
+
+.clockName {
+    background: #016b36;
+    color: white;
+    padding: 5px 10px;
+    font-family: sans-serif;
+    font-weight: bold;
+    width: 96px;
+    position: absolute;
+    top: -15px;
+    left: 38%;
+}
+
+.clock {
+    background: #c7c7ce;
+    text-align: center;
+    font-size: 52px;
+    height: 100%;
+    padding-top: 25px;
+    font-family: Orbitron;
+    border-radius: 5px;
+
+}
