@@ -1,0 +1,1 @@
+[![Netlify Status](https://api.netlify.com/api/v1/badges/7d32eb9f-fe92-488e-8836-075791715486/deploy-status)](https://app.netlify.com/sites/sweet-kheer-f4b606/deploys)
