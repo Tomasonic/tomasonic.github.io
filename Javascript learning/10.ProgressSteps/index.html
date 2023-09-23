@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Step 1: Define the document type and specify the language -->
+    <meta charset="UTF-8" />
+    <!-- Step 2: Set the viewport for responsive design -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Step 3: Link an external stylesheet (style.css) -->
+    <link rel="stylesheet" href="style.css" />
+    <!-- Step 4: Set the title of the webpage -->
+    <title>Progress Steps</title>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Step 5: Create a container div for the progress steps -->
+      <div class="progress-container">
+        <!-- Step 6: Create a progress bar with a unique ID (progress) -->
+        <div class="progress" id="progress"></div>
+        <!-- Step 7: Create four circles for steps (1, 2, 3, 4) -->
+        <div class="circle active">1</div>
+        <!-- Step 7.1: The first circle is active by default -->
+        <div class="circle">2</div>
+        <!-- Step 7.2: The rest are inactive -->
+        <div class="circle">3</div>
+        <div class="circle">4</div>
+      </div>
+      <!-- Step 8: Create "Previous" and "Next" buttons with unique IDs -->
+      <button class="btn" id="prev" disabled>Prev</button>
+      <!-- Step 8.1: "Prev" button is initially disabled -->
+      <button class="btn" id="next">Next</button>
+    </div>
+    <!-- Step 9: Link an external JavaScript file (script.js) for functionality -->
+    <script src="script.js"></script>
+  </body>
+</html>
