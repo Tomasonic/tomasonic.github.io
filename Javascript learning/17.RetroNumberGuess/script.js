@@ -1,63 +1,57 @@
-let number = Math.floor(Math.random() * 20) + 1;
-let reset = document.querySelector('.again')
+'strict'
+
+const inputGuess = document.querySelector('.guess');
+const checkBtn = document.querySelector('.check');
+const againBtn = document.querySelector('.again');
+const scoreSPAN = document.querySelector('.score');
+const showMessage = document.querySelector('.message');
+const mainNumber = document.querySelector('.number');
+
+const getRandomNumber = () => Math.trunc(Math.random() * 20) + 1;
 let score = 20;
-let highscore = 0;
+let randomNumber = getRandomNumber();
+mainNumber.textContent = randomNumber;
 
-const displayMessage = (message) => {
-    document.querySelector('.message').textContent = message;
+const updateMessage = (message) => {
+    showMessage.textContent = message;
+};
 
-}
+const updateScore = (newScore) => {
+    score = newScore;
+    scoreSPAN.textContent = score;
+};
 
+const handleCorrectGuess = () => {
+    updateMessage('Correct Number!!!');
+    document.body.style.backgroundColor = 'green';
+    mainNumber.style.width = '30rem';
+};
 
+const handleIncorrectGuess = (isTooHigh) => {
+    if (isTooHigh) {
+        if (score > 1) {
+            updateMessage('Too High!');
+            updateScore(score - 1);
+        } else {
+            updateMessage('You lost the game!!!');
+        }
+    } else {
+        updateMessage('Too Low!');
+        updateScore(score - 1);
+    }
+};
 
-reset.addEventListener('click', function () {
-    score = 20;
-    number = Math.floor(Math.random() * 20) + 1;
-    displayMessage('Start guessing...');
-    document.querySelector('.score').textContent = score;
-    document.querySelector('.number').textContent = '?';
-    document.querySelector('.guess').value = '';
-
-    document.querySelector('body').style.backgroundColor = '#222';
-    document.querySelector('.number').style.width = '15rem';
-
-
-
-});
-
-
-
-document.querySelector('.check').addEventListener('click', function () {
-    const guess = Number(document.querySelector('.guess').value);
+checkBtn.addEventListener('click', function () {
+    const guess = Number(inputGuess.value);
     console.log(guess, typeof guess);
 
-    //When there is no input
     if (!guess) {
-        displayMessage('No number!')
+        updateMessage('No number!!');
+    } else if (guess === randomNumber) {
+        handleCorrectGuess();
+    } else if (guess > randomNumber) {
+        handleIncorrectGuess(true);
+    } else if (guess < randomNumber) {
+        handleIncorrectGuess(false);
     }
-    // When player wins
-    else if (guess === number) {
-        displayMessage('!!! Correct Number!');
-        document.querySelector('.number').textContent = number;
-        document.querySelector('body').style.backgroundColor = '#60b347';
-        document.querySelector('.number').style.width = '30rem';
-        if (score > highscore) {
-            highscore = score;
-            document.querySelector('.highscore').textContent = highscore;
-        }
-    }
-
-    else if (guess !== number) {
-        if (score > 1) {
-            displayMessage(guess > number ? 'Number is to high!' : 'Number is too low!');
-            score--;
-            document.querySelector('.score').textContent = score;
-        } else {
-            displayMessage('You lost the game');
-            document.querySelector('.score').textContent = 0;
-        }
-
-    }
-
 });
-
