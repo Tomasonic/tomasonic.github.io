@@ -35,6 +35,11 @@ MODELS = [
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
+def msg(role, content):
+    """Create a Gradio-compatible chat message dict."""
+    return {"role": role, "content": content}
+
+
 def clean_html(raw: str) -> str:
     c = re.sub(r"^```html\s*\n?", "", raw.strip(), flags=re.IGNORECASE)
     c = re.sub(r"^```\s*\n?", "", c, flags=re.MULTILINE)
@@ -80,11 +85,6 @@ def call_claude(api_key: str, model: str, system: str, messages: list,
     return response.content[0].text
 
 
-def make_preview_html(html: str) -> str:
-    """Wrap HTML for safe iframe preview."""
-    return f'<iframe srcdoc="{gr.utils.sanitize_html_for_iframe(html)}" style="width:100%;height:600px;border:1px solid #e5e7eb;border-radius:8px;" sandbox="allow-scripts allow-same-origin"></iframe>'
-
-
 # ── Core actions ─────────────────────────────────────────────────────────────
 
 def upload_pdf(file, llama_key, extract_images):
@@ -112,11 +112,13 @@ def remove_pdf():
 def generate_script(api_key, model, style_name, chat_history):
     """Generate an HTML script from the loaded PDF."""
     if not api_key:
-        chat_history.append(("", "Please enter your Anthropic API key in Settings."))
+        chat_history.append(msg("user", "Generate script"))
+        chat_history.append(msg("assistant", "Please enter your Anthropic API key in Settings."))
         return chat_history, None, None
 
     if not _state["parsed_text"]:
-        chat_history.append(("", "Upload a PDF first so I have material to work with."))
+        chat_history.append(msg("user", "Generate script"))
+        chat_history.append(msg("assistant", "Upload a PDF first so I have material to work with."))
         return chat_history, None, None
 
     system = get_generate_prompt(style_name)
@@ -124,7 +126,8 @@ def generate_script(api_key, model, style_name, chat_history):
 
     messages = [{"role": "user", "content": "Generate an HTML study script from the provided material."}]
 
-    chat_history.append(("Generate script", "Generating your script..."))
+    chat_history.append(msg("user", "Generate script"))
+    chat_history.append(msg("assistant", "Generating your script..."))
 
     try:
         raw = call_claude(api_key, model, system, messages)
@@ -132,10 +135,10 @@ def generate_script(api_key, model, style_name, chat_history):
         _state["current_html"] = html
         _state["history_api"] = messages + [{"role": "assistant", "content": raw}]
 
-        chat_history[-1] = ("Generate script", f"Script generated — {len(html):,} characters. Use the Preview and Download tabs to view/save it.")
+        chat_history[-1] = msg("assistant", f"Script generated — {len(html):,} characters. Use the Preview and Download tabs to view/save it.")
         return chat_history, html, html
     except Exception as e:
-        chat_history[-1] = ("Generate script", f"Error: {e}")
+        chat_history[-1] = msg("assistant", f"Error: {e}")
         return chat_history, None, None
 
 
@@ -144,7 +147,8 @@ def chat_message(user_msg, api_key, model, style_name, chat_history):
     if not user_msg.strip():
         return chat_history, "", None, None
     if not api_key:
-        chat_history.append((user_msg, "Please enter your Anthropic API key in Settings."))
+        chat_history.append(msg("user", user_msg))
+        chat_history.append(msg("assistant", "Please enter your Anthropic API key in Settings."))
         return chat_history, "", None, None
 
     # Detect generation intent
@@ -158,18 +162,16 @@ def chat_message(user_msg, api_key, model, style_name, chat_history):
     is_edit = has_script and any(w in user_msg.lower() for w in edit_words)
 
     if is_gen and not has_script:
-        # Generate from PDF
         return _do_generate(user_msg, api_key, model, style_name, chat_history)
     elif is_edit:
-        # Edit existing script
         return _do_edit(user_msg, api_key, model, chat_history)
     else:
-        # Normal chat
         return _do_chat(user_msg, api_key, model, chat_history)
 
 
 def _do_generate(user_msg, api_key, model, style_name, chat_history):
-    chat_history.append((user_msg, "Generating your script..."))
+    chat_history.append(msg("user", user_msg))
+    chat_history.append(msg("assistant", "Generating your script..."))
 
     system = get_generate_prompt(style_name)
     system += f"\n\n[MATERIAL]\n{_state['parsed_text']}"
@@ -180,18 +182,18 @@ def _do_generate(user_msg, api_key, model, style_name, chat_history):
         html = clean_html(raw)
         _state["current_html"] = html
         _state["history_api"] = messages + [{"role": "assistant", "content": raw}]
-        chat_history[-1] = (user_msg, f"Script generated — {len(html):,} characters. Check Preview and Download tabs.")
+        chat_history[-1] = msg("assistant", f"Script generated — {len(html):,} characters. Check Preview and Download tabs.")
         return chat_history, "", html, html
     except Exception as e:
-        chat_history[-1] = (user_msg, f"Error: {e}")
+        chat_history[-1] = msg("assistant", f"Error: {e}")
         return chat_history, "", None, None
 
 
 def _do_edit(user_msg, api_key, model, chat_history):
-    chat_history.append((user_msg, "Editing your script..."))
+    chat_history.append(msg("user", user_msg))
+    chat_history.append(msg("assistant", "Editing your script..."))
 
     system = get_edit_prompt(_state["current_html"])
-    # Send only the edit instruction, not full history — saves tokens
     messages = [{"role": "user", "content": user_msg}]
 
     try:
@@ -199,20 +201,19 @@ def _do_edit(user_msg, api_key, model, chat_history):
         if is_html(raw):
             html = clean_html(raw)
             _state["current_html"] = html
-            chat_history[-1] = (user_msg, f"Script updated. Check Preview tab to see the changes.")
+            chat_history[-1] = msg("assistant", "Script updated. Check Preview tab to see the changes.")
             return chat_history, "", html, html
         else:
-            chat_history[-1] = (user_msg, raw.strip())
+            chat_history[-1] = msg("assistant", raw.strip())
             return chat_history, "", None, None
     except Exception as e:
-        chat_history[-1] = (user_msg, f"Error: {e}")
+        chat_history[-1] = msg("assistant", f"Error: {e}")
         return chat_history, "", None, None
 
 
 def _do_chat(user_msg, api_key, model, chat_history):
     system = get_chat_prompt()
     if _state["parsed_text"]:
-        # Send only first 2000 chars of PDF for context in chat — saves tokens
         system += f"\n\n[MATERIAL EXCERPT]\n{_state['parsed_text'][:2000]}"
 
     # Keep last 6 messages for chat context
@@ -223,17 +224,17 @@ def _do_chat(user_msg, api_key, model, chat_history):
         raw = call_claude(api_key, model, system, messages)
         reply = raw.strip()
 
-        # Update conversation history
         _state["history_api"].append({"role": "user", "content": user_msg})
         _state["history_api"].append({"role": "assistant", "content": reply})
-        # Keep history bounded
         if len(_state["history_api"]) > 20:
             _state["history_api"] = _state["history_api"][-12:]
 
-        chat_history.append((user_msg, reply))
+        chat_history.append(msg("user", user_msg))
+        chat_history.append(msg("assistant", reply))
         return chat_history, "", None, None
     except Exception as e:
-        chat_history.append((user_msg, f"Error: {e}"))
+        chat_history.append(msg("user", user_msg))
+        chat_history.append(msg("assistant", f"Error: {e}"))
         return chat_history, "", None, None
 
 
@@ -348,6 +349,7 @@ with gr.Blocks(title="Skriptomat") as app:
                     chatbot = gr.Chatbot(
                         label="Skriptomat",
                         height=480,
+                        type="messages",
                         placeholder="Upload a PDF and chat to generate & fine-tune your script.",
                     )
                     with gr.Row():
@@ -415,7 +417,6 @@ with gr.Blocks(title="Skriptomat") as app:
         if new_preview is not None:
             outputs.extend([new_preview, new_download])
         else:
-            # Keep existing preview/download — return current state
             outputs.extend([gr.update(), gr.update()])
         return outputs
 
