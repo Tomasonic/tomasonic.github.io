@@ -376,7 +376,6 @@ with gr.Blocks(title="Skriptomat") as app:
                     chatbot = gr.Chatbot(
                         label="Skriptomat",
                         height=480,
-                        type="messages",
                         placeholder="Upload a PDF and chat to generate & fine-tune your script.",
                     )
                     with gr.Row():
