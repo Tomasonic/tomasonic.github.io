@@ -76,13 +76,16 @@ def parse_pdf(file_path: str, llama_key: str, extract_images: bool = False) -> s
 def call_claude(api_key: str, model: str, system: str, messages: list,
                 max_tokens: int = 64000) -> str:
     client = anthropic.Anthropic(api_key=api_key)
-    response = client.messages.create(
+    full = ""
+    with client.messages.stream(
         model=model,
         max_tokens=max_tokens,
         system=system,
         messages=messages,
-    )
-    return response.content[0].text
+    ) as stream:
+        for chunk in stream.text_stream:
+            full += chunk
+    return full
 
 
 def save_api_keys(ak, lk):
