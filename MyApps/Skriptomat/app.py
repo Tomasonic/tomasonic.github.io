@@ -10,7 +10,10 @@ import tempfile
 import anthropic
 import gradio as gr
 from dotenv import load_dotenv
-from llama_cloud_services import LlamaParse
+try:
+    from llama_cloud import LlamaParse
+except ImportError:
+    from llama_cloud_services import LlamaParse
 
 from prompts import get_generate_prompt, get_edit_prompt, get_chat_prompt
 from styles import get_style_choices, get_style_by_name, DEFAULT_STYLE, PRESETS
@@ -272,10 +275,7 @@ THEME = gr.themes.Soft(
     font_mono=gr.themes.GoogleFont("DM Mono"),
 )
 
-with gr.Blocks(theme=THEME, title="Skriptomat", css="""
-    .contain { max-width: 900px !important; margin: 0 auto !important; }
-    footer { display: none !important; }
-""") as app:
+with gr.Blocks(title="Skriptomat") as app:
 
     gr.Markdown("# Skriptomat\nAI study script generator — upload a PDF, pick a style, generate & fine-tune.")
 
@@ -446,4 +446,7 @@ with gr.Blocks(theme=THEME, title="Skriptomat", css="""
 
 
 if __name__ == "__main__":
-    app.launch()
+    app.launch(
+        theme=THEME,
+        css=".contain { max-width: 900px !important; margin: 0 auto !important; } footer { display: none !important; }",
+    )
