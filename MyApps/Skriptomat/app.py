@@ -85,6 +85,31 @@ def call_claude(api_key: str, model: str, system: str, messages: list,
     return response.content[0].text
 
 
+def save_api_keys(ak, lk):
+    """Save API keys to .env file so they auto-load next time."""
+    env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+    lines = []
+    if os.path.exists(env_path):
+        with open(env_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+    kv = {"ANTHROPIC_KEY": ak.strip(), "LLAMA_KEY": lk.strip()}
+    new, found = [], set()
+    for line in lines:
+        k = line.split("=", 1)[0].strip()
+        if k in kv:
+            new.append(f"{k}={kv[k]}\n")
+            found.add(k)
+        else:
+            new.append(line)
+    for k, v in kv.items():
+        if k not in found and v:
+            new.append(f"{k}={v}\n")
+    with open(env_path, "w", encoding="utf-8") as f:
+        f.writelines(new)
+    saved = [k for k, v in kv.items() if v]
+    return f"Saved: {', '.join(saved)}" if saved else "No keys to save."
+
+
 # ── Core actions ─────────────────────────────────────────────────────────────
 
 def upload_pdf(file, llama_key, extract_images):
@@ -295,6 +320,8 @@ with gr.Blocks(title="Skriptomat") as app:
                     placeholder="llx-... (for PDF parsing)",
                     value=os.getenv("LLAMA_KEY", ""),
                 )
+                save_keys_btn = gr.Button("Save Keys", size="sm")
+                keys_status = gr.Markdown("")
 
             with gr.Accordion("Model", open=True):
                 model = gr.Dropdown(
@@ -384,6 +411,13 @@ with gr.Blocks(title="Skriptomat") as app:
         return model_map.get(display_name, "claude-sonnet-4-6")
 
     # ── Wire events ──────────────────────────────────────────────────────
+
+    # Save API keys
+    save_keys_btn.click(
+        fn=save_api_keys,
+        inputs=[api_key, llama_key],
+        outputs=[keys_status],
+    )
 
     # PDF
     load_pdf_btn.click(
