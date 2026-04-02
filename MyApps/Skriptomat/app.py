@@ -10,10 +10,7 @@ import tempfile
 import anthropic
 import gradio as gr
 from dotenv import load_dotenv
-try:
-    from llama_cloud import LlamaParse
-except ImportError:
-    from llama_cloud_services import LlamaParse
+from llama_cloud_services import LlamaParse
 
 from prompts import get_generate_prompt, get_edit_prompt, get_chat_prompt
 from styles import get_style_choices, get_style_by_name, DEFAULT_STYLE, PRESETS
